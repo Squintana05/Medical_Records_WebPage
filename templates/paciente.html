@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página del Paciente</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+        }
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 600px;
+            margin: 40px auto;
+        }
+        h1, h2 {
+            color: #1e88e5;
+        }
+        select, button, input[type="file"] {
+            margin: 12px 0;
+            padding: 12px;
+            font-size: 16px;
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #1e88e5;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #1565c0;
+        }
+        #consultation-result {
+            display: none;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bienvenido a la página del Paciente</h1>
+        <h2>Paciente...</h2>
+        <button onclick="goToIndex()">Volver a la página principal</button>
+    </div>
+
+    <div class="container">
+        <h1>OCR</h1> 
+        <form id="upload-form" action="/" method="post" enctype="multipart/form-data" onsubmit="return validarFormulario()">
+            <label for="tipo-imagen"><strong>Seleccione el tipo de imagen:</strong></label>
+            <select name="tipo_imagen" id="tipo-imagen">
+                <option value="">-- Seleccione una opción --</option>
+                <option value="Solo_texto">Solo Texto</option>
+                <option value="Solo_grafica">Solo Gráfica</option>
+                <option value="Texto_y_grafica">Texto y Gráfica</option>
+            </select>
+            <input type="file" name="file" accept="image/*" required>
+            <button type="submit">Subir y procesar</button>
+        </form>
+    </div>
+
+    <div class="container">
+        <h3>Si desea conocer un pequeño resumen sobre su historia clínica, presione el siguiente botón</h3>
+        <button onclick="consultDocument()">Realizar consulta</button>
+        <div id="consultation-result">
+            <h2>Resumen de la historia clínica:</h2>
+            <p id="resumen-texto"></p>
+        </div>
+    </div>
+
+    <script>
+        function goToIndex() {
+            window.location.href = "/";
+        }
+        function validarFormulario(){
+            var tipoSeleccionado = document.getElementById("tipo-imagen").value;
+            var archivoSeleccionado = document.querySelector('input[type="file"]').files.length;
+            
+            if (tipoSeleccionado === ""){
+                alert("Por favor, seleccione el tipo de imagen que se va a cargar.");
+                return false;
+            }
+            if (archivoSeleccionado === 0){
+                alert("Por favor, seleccione un archivo de imagen.");
+                return false;
+            }
+            return true;
+        }   
+        
+        function consultDocument() {
+            const fileInput = document.querySelector('input[type="file"]');
+            
+            if (!fileInput || fileInput.files.length === 0) {
+                alert("Por favor, cargue una imagen antes de solicitar el resumen.");
+                return;
+            }
+        
+            const selectedFile = fileInput.files[0].name;
+            const prompt = "Realice un resumen corto destinado al entendimiento de un paciente sobre la historia clínica que acaba de cargar.";
+        
+            fetch('/consult_gemini', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: selectedFile, prompt: prompt })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultContainer = document.getElementById('consultation-result');
+                const resumenTexto = document.getElementById('resumen-texto');
+        
+                if (resultContainer && resumenTexto) {
+                    resumenTexto.textContent = data.response || "No se recibió respuesta.";
+                    resultContainer.style.display = "block";  
+                } else {
+                    console.error("No se encontró el contenedor de resumen.");
+                }
+            })
+            .catch(error => console.error('Error en la consulta:', error));
+        }
+    </script>
+</body>
+</html>

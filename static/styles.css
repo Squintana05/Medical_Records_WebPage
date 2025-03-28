@@ -1,0 +1,19 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin-top: 50px;
+}
+
+button {
+    background-color: #0abd10;
+    color: black;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;  /* Bordes redondeados */
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: #0a9c0e;  /* Color más oscuro al pasar el mouse */
+}
